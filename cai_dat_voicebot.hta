@@ -401,7 +401,7 @@
         function readGitHubFile(filePath) {
             logMessage("[INFO] Đang tải " + filePath + "...", "info");
             try {
-                var url = "https://raw.githubusercontent.com/bangdc90/cai_dat_ai/main/" + filePath;
+                var url = "https://raw.githubusercontent.com/bangdc90/cai_dat_ai_preview/main/" + filePath;
                 // Use Windows TEMP folder - always has write permission
                 var tempFolder = shell.ExpandEnvironmentStrings("%TEMP%");
                 var tempFile = tempFolder + "\\voicebot_" + new Date().getTime() + ".txt";
@@ -549,7 +549,7 @@
                 setStatus("Đang tải APK phiên bản " + serverVersion + "...");
                 setProgress(30);
                 
-                var apkUrl = serverInfo.apk_url || "https://raw.githubusercontent.com/bangdc90/cai_dat_ai/main/app-voicebot.apk";
+                var apkUrl = serverInfo.apk_url || "https://raw.githubusercontent.com/bangdc90/cai_dat_ai_preview/main/app-voicebot.apk";
                 
                 // Try PowerShell download first (more reliable for large files)
                 var downloadSuccess = false;
