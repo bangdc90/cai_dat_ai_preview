@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VoiceBot AI Installer</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <HTA:APPLICATION
+        ID="VoiceBotInstaller"
+        APPLICATIONNAME="VoiceBot Installer"
+        BORDER="thin"
+        BORDERSTYLE="normal"
+        CAPTION="yes"
+        CONTEXTMENU="no"
+        INNERBORDER="no"
+        MAXIMIZEBUTTON="no"
+        MINIMIZEBUTTON="yes"
+        NAVIGABLE="no"
+        SCROLL="auto"
+        SCROLLFLAT="yes"
+        SELECTION="no"
+        SHOWINTASKBAR="yes"
+        SINGLEINSTANCE="yes"
+        SYSMENU="yes"
+        VERSION="1.0"
+        WINDOWSTATE="normal"
+    />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100%;
+            padding: 15px;
+        }
+        .container { max-width: 780px; margin: 0 auto; }
+        h1 { text-align: center; color: #89b4fa; margin-bottom: 8px; font-size: 28px; }
+        .subtitle { text-align: center; color: #a6adc8; margin-bottom: 20px; font-size: 15px; }
+        
+        /* Mode Selection */
+        .mode-selection {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 25px 20px;
+            border: 2px solid #45475a;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .mode-btn:hover {
+            border-color: #89b4fa;
+            background: rgba(137, 180, 250, 0.1);
+        }
+        .mode-btn.selected {
+            border-color: #a6e3a1;
+            background: rgba(166, 227, 161, 0.15);
+        }
+        .mode-btn h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #cdd6f4;
+        }
+        .mode-btn.selected h3 {
+            color: #a6e3a1;
+        }
+        .mode-btn p {
+            font-size: 13px;
+            color: #6c7086;
+        }
+        .mode-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+        
+        .warning-box {
+            background: rgba(243, 139, 168, 0.15);
+            border: 1px solid #f38ba8;
+            border-radius: 10px;
+            padding: 14px 20px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            color: #f38ba8;
+            text-align: center;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .instructions.show { display: block; }
+        .instructions h3 { color: #f9e2af; margin-bottom: 10px; font-size: 15px; }
+        .instructions ol { margin-left: 25px; color: #cdd6f4; font-size: 14px; line-height: 2; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; display: none; }
+        .input-group.show { display: flex; }
+        .input-group label { width: 110px; font-size: 15px; }
+        .input-group input {
+            flex: 1; padding: 12px 15px; border: 1px solid #45475a; border-radius: 6px;
+            background: #313244; color: #fff; font-size: 15px; font-family: Consolas, monospace;
+        }
+        .btn {
+            padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 15px; font-weight: bold;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary {
+            background: #a6e3a1; color: #1e1e2e; width: 100%;
+            padding: 16px; font-size: 18px; margin-bottom: 18px; display: none;
+        }
+        .btn-primary.show { display: block; }
+        .btn-secondary { background: #45475a; color: #fff; }
+        .download-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: stretch;
+        }
+        .download-actions.show { display: flex; }
+        .download-actions.hide { display: none; }
+        #downloadBtn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .btn-skip {
+            background: #6c7086;
+            color: #fff;
+            padding: 16px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .btn-skip:hover {
+            background: #7f849c;
+        }
+        .progress-section { margin-bottom: 12px; display: none; }
+        .progress-section.show { display: block; }
+        .progress-section h3 { font-size: 15px; margin-bottom: 8px; color: #cdd6f4; }
+        .progress-bar {
+            height: 28px; background: #313244; border-radius: 6px;
+            overflow: hidden; position: relative;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #89b4fa, #a6e3a1);
+            width: 0%; border-radius: 5px;
+        }
+        .progress-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 13px; font-weight: bold; color: #fff; text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+        .log-box {
+            background: #11111b; border: 1px solid #313244; border-radius: 6px;
+            padding: 12px; height: 180px; overflow-y: auto;
+            font-family: Consolas, monospace; font-size: 13px; line-height: 1.6;
+            display: none;
+        }
+        .log-box.show { display: block; }
+        .log-box .success { color: #a6e3a1; }
+        .log-box .error { color: #f38ba8; }
+        .log-box .info { color: #89b4fa; }
+        .log-box .warn { color: #f9e2af; }
+        .status-bar {
+            margin-top: 10px; padding: 10px 15px; background: rgba(255,255,255,0.05);
+            border-radius: 6px; font-size: 14px; color: #a6adc8; display: none;
+        }
+        .status-bar.show { display: block; }
+        .step-indicator { display: none; justify-content: space-between; margin-bottom: 12px; }
+        .step-indicator.show { display: flex; }
+        .step {
+            flex: 1; text-align: center; padding: 10px 6px; background: #313244;
+            margin: 0 3px; border-radius: 6px; font-size: 12px; color: #6c7086;
+        }
+        .step.active { background: #89b4fa; color: #1e1e2e; }
+        .step.done { background: #a6e3a1; color: #1e1e2e; }
+        .step.error { background: #f38ba8; color: #1e1e2e; }
+        
+        .update-notification {
+            background: linear-gradient(135deg, rgba(166, 227, 161, 0.2), rgba(137, 180, 250, 0.2));
+            border: 2px solid #a6e3a1;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+            display: none;
+        }
+        .update-notification.show { display: block; }
+        .update-notification h3 {
+            color: #a6e3a1;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        .update-notification .changelog {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #cdd6f4;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .update-notification .btn-update {
+            background: #a6e3a1;
+            color: #1e1e2e;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .update-notification .btn-skip {
+            background: #45475a;
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>C&#224;i &#272;&#7863;t AI cho loa Phicomm R1</h1>
+        <p class="subtitle" style="display:block; margin-bottom:15px; font-size:14px;">By V&#7885;c S&#297;</p>
+
+        <div class="warning-box">
+            ⚠ KHÔNG ĐƯỢC RÚT ĐIỆN CỦA LOA KHI ĐANG CÀI ĐẶT!
+        </div>
+
+        <!-- Buttons kiểm tra/tải APK và Bỏ qua -->
+        <div class="download-actions show" id="downloadActions">
+            <button id="downloadBtn" class="btn btn-primary show" onclick="checkAndDownloadAPK()">
+                📥 KIỂM TRA VÀ TẢI APK MỚI NHẤT
+            </button>
+            <button class="btn-skip" onclick="skipDownload()">
+                ⏩ BỎ QUA
+            </button>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="mode-selection">
+            <div class="mode-btn" id="modeNew" onclick="selectMode('new')">
+                <div class="mode-icon">🆕</div>
+                <h3>CÀI ĐẶT MỚI</h3>
+                <p>Loa chưa có AI, cài lần đầu</p>
+            </div>
+            <div class="mode-btn" id="modeUpdate" onclick="selectMode('update')">
+                <div class="mode-icon">🔄</div>
+                <h3>CẬP NHẬT</h3>
+                <p>Loa đã có AI, nâng cấp phiên bản</p>
+            </div>
+        </div>
+
+        <!-- Instructions for New Install -->
+        <div class="instructions" id="instructNew">
+            <h3>Hướng dẫn cài mới:</h3>
+            <ol>
+                <li><strong>GIỮ NÚT</strong> loa đến khi đèn nháy trắng hoặc nghe "Vào chế độ cài đặt WiFi"</li>
+                <li>Kết nối máy tính vào WiFi: <strong>Phicomm_R1_xxx</strong></li>
+                <li>IP mặc định: <strong>192.168.43.1</strong> (đã điền sẵn)</li>
+                <li>Nhấn <strong>"BẮT ĐẦU CÀI ĐẶT"</strong> <em style="color:#f9e2af;">(nếu thất bại, bấm lại vài lần)</em></li>
+                <li><em style="color:#fab387;">⚠ Nếu thấy "Stop running this script?" thì chọn <strong>No</strong></em></li>
+            </ol>
+        </div>
+
+        <!-- Instructions for Update -->
+        <div class="instructions" id="instructUpdate">
+            <h3>Hướng dẫn cập nhật:</h3>
+            <ol>
+                <li>Kết nối loa vào WiFi nhà</li>
+                <li>Hỏi loa <strong>"<em>Địa chỉ IP của bạn là gì?</em>"</strong></li>
+                <li>Nhập IP vào ô bên dưới</li>
+                <li>Nhấn <strong>"BẮT ĐẦU CẬP NHẬT"</strong> <em style="color:#f9e2af;">(nếu thất bại, bấm lại vài lần)</em></li>
+                <li><em style="color:#fab387;">⚠ Nếu thấy "Stop running this script?" thì chọn <strong>No</strong></em></li>
+            </ol>
+        </div>
+
+        <div class="input-group" id="ipGroup">
+            <label>Địa chỉ IP:</label>
+            <input type="text" id="ipAddress" value="" placeholder="Ví dụ: 192.168.1.100">
+        </div>
+
+        <button class="btn btn-primary" id="installBtn" onclick="startInstall()">
+            BẮT ĐẦU CÀI ĐẶT
+        </button>
+
+        <!-- Steps for New Install (6 steps) -->
+        <div class="step-indicator" id="stepsNew">
+            <div class="step" id="stepN1">1. Kết nối</div>
+            <div class="step" id="stepN2">2. Tắt app cũ</div>
+            <div class="step" id="stepN3">3. Copy APK</div>
+            <div class="step" id="stepN4">4. Cài đặt</div>
+            <div class="step" id="stepN5">5. Quyền</div>
+            <div class="step" id="stepN6">6. Xong</div>
+        </div>
+
+        <!-- Steps for Update (5 steps) -->
+        <div class="step-indicator" id="stepsUpdate">
+            <div class="step" id="stepU1">1. K&#7871;t n&#7889;i</div>
+            <div class="step" id="stepU2">2. Copy APK</div>
+            <div class="step" id="stepU3">3. C&#224;i &#273;&#7863;t</div>
+            <div class="step" id="stepU4">4. Quy&#7873;n</div>
+            <div class="step" id="stepU5">5. Xong</div>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <h3>Ti&#7871;n tr&#236;nh:</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+                <span class="progress-text" id="progressText">0%</span>
+            </div>
+        </div>
+
+        <div class="log-box" id="logBox"></div>
+
+        <div class="status-bar" id="statusBar">
+            Vui l&#242;ng ch&#7885;n ch&#7871; &#273;&#7897; c&#224;i &#273;&#7863;t.
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var shell = new ActiveXObject("WScript.Shell");
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        var scriptDir = "";
+        var adbPath = "";
+        var apkPath = "";
+        var versionJsonPath = "";
+        var isInstalling = false;
+        var installMode = "";
+        var deviceIP = "";
+        var localVersion = "";
+        var serverVersion = "";
+        var isDownloading = false;
+
+        function init() {
+            try {
+                var fullPath = document.location.href;
+                fullPath = fullPath.replace("file:///", "").replace(/\//g, "\\");
+                fullPath = unescape(fullPath);
+                scriptDir = fullPath.substring(0, fullPath.lastIndexOf("\\"));
+                adbPath = scriptDir + "\\adb.exe";
+                apkPath = scriptDir + "\\app-voicebot.apk";
+                versionJsonPath = scriptDir + "\\version.json";
+                
+                if (!fso.FileExists(adbPath)) {
+                    alert("Không tìm thấy adb.exe!");
+                }
+                
+                // Đọc version local
+                readLocalVersion();
+                
+                // Hiển thị các phần UI cần thiết
+                document.getElementById("progressSection").className = "progress-section show";
+                document.getElementById("logBox").className = "log-box show";
+                document.getElementById("statusBar").className = "status-bar show";
+                document.getElementById("statusBar").innerHTML = "Sẵn sàng kiểm tra cập nhật.";
+                
+                // Ẩn tất cả UI ban đầu, chỉ hiện nút kiểm tra
+                hideAllUI();
+                
+            } catch(e) {
+                alert("Lỗi khởi tạo: " + e.message);
+            }
+        }
+
+        function readLocalVersion() {
+            try {
+                if (fso.FileExists(versionJsonPath)) {
+                    // Use FileSystemObject for local files (safer, no security restrictions)
+                    var file = fso.OpenTextFile(versionJsonPath, 1, false, -2); // -2 = System default
+                    var content = file.ReadAll();
+                    file.Close();
+                    
+                    // Remove BOM if present
+                    if (content.charCodeAt(0) === 0xFEFF) {
+                        content = content.substring(1);
+                    }
+                    
+                    var versionData = JSON.parse(content);
+                    localVersion = versionData.latest_version || "0.0.0";
+                } else {
+                    localVersion = "0.0.0";
+                }
+            } catch(e) {
+                localVersion = "0.0.0";
+                logMessage("[LỖI] Không đọc được version local: " + e.message, "error");
+            }
+        }
+
+        function readGitHubFile(filePath) {
+            logMessage("[INFO] Đang tải " + filePath + "...", "info");
+            try {
+                var url = "https://raw.githubusercontent.com/bangdc90/cai_dat_ai/main/" + filePath;
+                // Use Windows TEMP folder - always has write permission
+                var tempFolder = shell.ExpandEnvironmentStrings("%TEMP%");
+                var tempFile = tempFolder + "\\voicebot_" + new Date().getTime() + ".txt";
+                
+                // Use PowerShell to download and save as ASCII (compatible with FileSystemObject)
+                var psCmd = 'powershell -ExecutionPolicy Bypass -Command "' +
+                           '$ProgressPreference = \'SilentlyContinue\'; ' +
+                           '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ' +
+                           'try { ' +
+                           '$content = (New-Object System.Net.WebClient).DownloadString(\'' + url + '\'); ' +
+                           '$content | Out-File -FilePath \'' + tempFile + '\' -Encoding ASCII -NoNewline; ' +
+                           'exit 0 } catch { exit 1 }"';
+                var result = shell.Run(psCmd, 0, true);
+                
+                if (result !== 0 || !fso.FileExists(tempFile)) {
+                    // Fallback: Use certutil
+                    logMessage("[INFO] Thử certutil...", "info");
+                    var certutilCmd = 'cmd /c certutil -urlcache -split -f "' + url + '" "' + tempFile + '" >nul 2>&1';
+                    result = shell.Run(certutilCmd, 0, true);
+                }
+                
+                if (fso.FileExists(tempFile)) {
+                    // Read with FileSystemObject in ASCII mode
+                    var file = fso.OpenTextFile(tempFile, 1, false, 0); // 0 = ASCII
+                    var content = "";
+                    if (!file.AtEndOfStream) {
+                        content = file.ReadAll();
+                    }
+                    file.Close();
+                    
+                    // Cleanup
+                    try { fso.DeleteFile(tempFile); } catch(e) {}
+                    
+                    // Clean content - remove BOM and trailing whitespace
+                    content = content.replace(/^\uFEFF/, '').replace(/^\xEF\xBB\xBF/, '').trim();
+                    
+                    if (content.length > 0) {
+                        logMessage("[OK] Tải thành công (" + content.length + " chars)", "success");
+                        return content;
+                    }
+                }
+                
+                throw new Error("Không thể tải file từ GitHub. Vui lòng kiểm tra kết nối Internet.");
+            } catch(e) {
+                logMessage("[LỖI] " + e.message, "error");
+                return null;
+            }
+        }
+
+        function compareVersions(v1, v2) {
+            var parts1 = v1.split('.');
+            var parts2 = v2.split('.');
+            
+            for (var i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+                var p1 = parseInt(parts1[i] || 0);
+                var p2 = parseInt(parts2[i] || 0);
+                if (p1 > p2) return 1;
+                if (p1 < p2) return -1;
+            }
+            return 0;
+        }
+
+        function skipDownload() {
+            logMessage("[INFO] Bỏ qua kiểm tra cập nhật", "info");
+            logMessage("[INFO] Sử dụng APK hiện có: v" + localVersion, "info");
+            setStatus("Sử dụng APK hiện có: v" + localVersion);
+            setProgress(100);
+            
+            // Hide download buttons
+            document.getElementById("downloadActions").className = "download-actions hide";
+            
+            // Show mode selection
+            showModeSelection();
+        }
+
+        function checkAndDownloadAPK() {
+            if (isDownloading) return;
+            
+            isDownloading = true;
+            dimOtherUI();
+            
+            logMessage("", "info");
+            logMessage("=========================================", "info");
+            logMessage("KIỂM TRA CẬP NHẬT", "info");
+            logMessage("=========================================", "info");
+            
+            try {
+                // Fetch version từ server
+                logMessage("[INFO] Đang kiểm tra phiên bản mới...", "info");
+                setStatus("Đang kiểm tra cập nhật...");
+                setProgress(10);
+                
+                var versionJson = readGitHubFile("version.json");
+                if (!versionJson) {
+                    throw new Error("Không thể kết nối đến server. Vui lòng kiểm tra Internet.");
+                }
+                
+                var serverInfo = JSON.parse(versionJson);
+                serverVersion = serverInfo.latest_version;
+                
+                setProgress(20);
+                logMessage("[INFO] Phiên bản local: " + localVersion, "info");
+                logMessage("[INFO] Phiên bản server: " + serverVersion, "info");
+                
+                // So sánh version
+                if (compareVersions(serverVersion, localVersion) <= 0) {
+                    setProgress(100);
+                    logMessage("[OK] File APK hiện tại đã là phiên bản mới nhất: " + localVersion, "success");
+                    logMessage("=========================================", "success");
+                    logMessage("[OK] SẴN SÀNG CÀI ĐẶT!", "success");
+                    logMessage("=========================================", "success");
+                    setStatus("[OK] APK đã sẵn sàng: v" + localVersion);
+                    
+                    // Show changelog popup
+                    var changelogText = "";
+                    if (serverInfo.changelog && serverInfo.changelog.length > 0) {
+                        for (var i = 0; i < serverInfo.changelog.length; i++) {
+                            changelogText += "  " + serverInfo.changelog[i] + "\n";
+                        }
+                    }
+                    
+                    var popupMsg = "═══════════════════════════════════\n" +
+                                  "  PHIÊN BẢN: " + localVersion + "\n" +
+                                  "  Ngày phát hành: " + serverInfo.release_date + "\n" +
+                                  "═══════════════════════════════════\n\n" +
+                                  "TÍNH NĂNG:\n\n" +
+                                  changelogText +
+                                  "\nAPK đã sẵn sàng để cài đặt!";
+                    alert(popupMsg);
+                    
+                    showModeSelection();
+                    isDownloading = false;
+                    return;
+                    // Đã là mới nhất
+                    setProgress(100);
+                    logMessage("[OK] APK đã là phiên bản mới nhất!", "success");
+                    setStatus("[OK] APK đã sẵn sàng: v" + localVersion);
+                    showInstallUI();
+                    return;
+                }
+                
+                // Cần tải APK mới
+                logMessage("[INFO] Phát hiện phiên bản mới: " + serverVersion, "info");
+                logMessage("[INFO] Đang tải APK mới...", "warn");
+                setStatus("Đang tải APK phiên bản " + serverVersion + "...");
+                setProgress(30);
+                
+                var apkUrl = serverInfo.apk_url || "https://raw.githubusercontent.com/bangdc90/cai_dat_ai/main/app-voicebot.apk";
+                
+                // Try PowerShell download first (more reliable for large files)
+                var downloadSuccess = false;
+                try {
+                    logMessage("[INFO] Đang tải bằng PowerShell...", "info");
+                    
+                    if (fso.FileExists(apkPath)) {
+                        fso.DeleteFile(apkPath);
+                    }
+                    
+                    var psCmd = 'powershell -Command "$ProgressPreference = \'SilentlyContinue\'; ' +
+                               '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; ' +
+                               '$client = New-Object System.Net.WebClient; ' +
+                               '$client.Headers.Add(\'User-Agent\', \'Mozilla/5.0\'); ' +
+                               'try { $client.DownloadFile(\'' + apkUrl + '\', \'' + apkPath + '\'); exit 0 } ' +
+                               'catch { Write-Host $_.Exception.Message; exit 1 }"';
+                    
+                    var psResult = shell.Run(psCmd, 0, true);
+                    
+                    if (psResult === 0 && fso.FileExists(apkPath)) {
+                        setProgress(70);
+                        var fileSize = Math.round(fso.GetFile(apkPath).Size / 1024 / 1024 * 10) / 10;
+                        logMessage("[OK] Tải thành công! Dung lượng: " + fileSize + " MB", "success");
+                        downloadSuccess = true;
+                    }
+                } catch(e) {
+                    logMessage("[CẢNH BÁO] PowerShell download failed: " + e.message, "warn");
+                }
+                
+                // Fallback to XMLHTTP if PowerShell failed
+                if (!downloadSuccess) {
+                    logMessage("[INFO] Đang thử tải bằng XMLHTTP...", "info");
+                    
+                    var http = null;
+                    var httpTypes = [
+                        "MSXML2.ServerXMLHTTP.6.0",
+                        "MSXML2.ServerXMLHTTP.3.0",
+                        "MSXML2.ServerXMLHTTP",
+                        "MSXML2.XMLHTTP.6.0",
+                        "MSXML2.XMLHTTP.3.0",
+                        "MSXML2.XMLHTTP",
+                        "Microsoft.XMLHTTP"
+                    ];
+                    
+                    for (var i = 0; i < httpTypes.length; i++) {
+                        try {
+                            http = new ActiveXObject(httpTypes[i]);
+                            logMessage("[INFO] Sử dụng: " + httpTypes[i], "info");
+                            break;
+                        } catch(e) {}
+                    }
+                    
+                    if (!http) {
+                        throw new Error("Không tìm thấy HTTP component");
+                    }
+                    
+                    // Try both open and Open
+                    try {
+                        http.open("GET", apkUrl, false);
+                    } catch(e) {
+                        http.Open("GET", apkUrl, false);
+                    }
+                    
+                    try { http.setRequestHeader("User-Agent", "Mozilla/5.0"); } catch(e) {}
+                    try { http.setRequestHeader("Cache-Control", "no-cache"); } catch(e) {}
+                    try { http.setTimeouts(120000, 120000, 120000, 180000); } catch(e) {}
+                    try { http.setOption(2, 13056); } catch(e) {}
+                    
+                    logMessage("[CHỜ] Đang tải file (~17MB), vui lòng chờ...", "warn");
+                    
+                    try {
+                        http.send();
+                    } catch(e) {
+                        http.Send();
+                    }
+                    
+                    var status = http.status || http.Status;
+                    if (status !== 200) {
+                        throw new Error("Lỗi tải APK: HTTP " + status);
+                    }
+                    
+                    setProgress(70);
+                    var responseBody = http.responseBody || http.ResponseBody;
+                    logMessage("[OK] Tải thành công! Dung lượng: " + Math.round(responseBody.length / 1024 / 1024 * 10) / 10 + " MB", "success");
+                    
+                    // Lưu APK
+                    logMessage("[INFO] Đang lưu file...", "info");
+                    var stream = new ActiveXObject("ADODB.Stream");
+                    stream.Type = 1;
+                    stream.Open();
+                    stream.Write(responseBody);
+                    
+                    if (fso.FileExists(apkPath)) {
+                        fso.DeleteFile(apkPath);
+                    }
+                    
+                    stream.SaveToFile(apkPath, 2);
+                    stream.Close();
+                }
+                
+                setProgress(90);
+                
+                // Tải và lưu file version.json
+                logMessage("[INFO] Đang cập nhật version.json...", "info");
+                try {
+                    var newVersionJson = readGitHubFile("version.json");
+                    if (newVersionJson) {
+                        var f = fso.CreateTextFile(versionJsonPath, true);
+                        f.Write(newVersionJson);
+                        f.Close();
+                        logMessage("[OK] Đã cập nhật version.json", "success");
+                    }
+                } catch(e) {
+                    logMessage("[CẢNH BÁO] Không lưu được version.json: " + e.message, "warn");
+                }
+                
+                localVersion = serverVersion;
+                
+                setProgress(100);
+                logMessage("[OK] Đã lưu APK phiên bản " + serverVersion, "success");
+                logMessage("=========================================", "success");
+                logMessage("[OK] SẴN SÀNG CÀI ĐẶT!", "success");
+                logMessage("=========================================", "success");
+                
+                setStatus("[OK] APK đã sẵn sàng: v" + serverVersion);
+                
+                // Show changelog popup
+                var changelogText = "";
+                if (serverInfo.changelog && serverInfo.changelog.length > 0) {
+                    for (var i = 0; i < serverInfo.changelog.length; i++) {
+                        changelogText += "  " + serverInfo.changelog[i] + "\n";
+                    }
+                }
+                
+                var popupMsg = "═══════════════════════════════════\n" +
+                              "  ĐÃ TẢI PHIÊN BẢN: " + serverVersion + "\n" +
+                              "  Ngày phát hành: " + serverInfo.release_date + "\n" +
+                              "═══════════════════════════════════\n\n" +
+                              "TÍNH NĂNG MỚI:\n\n" +
+                              changelogText +
+                              "\nAPK đã sẵn sàng để cài đặt!";
+                alert(popupMsg);
+                
+                showModeSelection();
+                
+            } catch(e) {
+                setProgress(0);
+                logMessage("[LỖI] " + e.message, "error");
+                setStatus("[LỖI] " + e.message);
+                
+                var fallbackMsg = "Lỗi tải cập nhật!\n\n" + 
+                                  e.message + "\n\n" +
+                                  "Bạn có thể tải thủ công tại:\n" +
+                                  "pikapet.net/loa-ai\n\n" +
+                                  "Sau đó ghi đè file app-voicebot.apk";
+                alert(fallbackMsg);
+                undimOtherUI();
+            } finally {
+                isDownloading = false;
+            }
+        }
+
+        function hideInstallUI() {
+            document.getElementById("instructNew").style.display = "none";
+            document.getElementById("instructUpdate").style.display = "none";
+            document.getElementById("ipGroup").style.display = "none";
+            document.getElementById("installBtn").style.display = "none";
+            document.getElementById("stepsNew").style.display = "none";
+            document.getElementById("stepsUpdate").style.display = "none";
+        }
+        
+        function hideAllUI() {
+            document.querySelector(".mode-selection").style.display = "none";
+            hideInstallUI();
+        }
+        
+        function showModeSelection() {
+            undimOtherUI();
+            document.querySelector(".mode-selection").style.display = "flex";
+        }
+
+        function showInstallUI() {
+            // Don't call undimOtherUI here, it will be called from selectMode
+            document.getElementById("ipGroup").style.display = "flex";
+            document.getElementById("installBtn").style.display = "block";
+        }
+
+        function dimOtherUI() {
+            var container = document.querySelector(".container");
+            container.style.opacity = "0.5";
+            container.style.pointerEvents = "none";
+            document.getElementById("progressSection").style.opacity = "1";
+            document.getElementById("progressSection").style.pointerEvents = "auto";
+            document.getElementById("logBox").style.opacity = "1";
+            document.getElementById("statusBar").style.opacity = "1";
+        }
+
+        function undimOtherUI() {
+            var container = document.querySelector(".container");
+            container.style.opacity = "1";
+            container.style.pointerEvents = "auto";
+        }
+
+        function logMessage(msg, type) {
+            var logBox = document.getElementById("logBox");
+            var time = new Date();
+            var timestamp = ("0" + time.getHours()).slice(-2) + ":" + 
+                           ("0" + time.getMinutes()).slice(-2) + ":" + 
+                           ("0" + time.getSeconds()).slice(-2);
+            logBox.innerHTML += '<div class="' + (type || "info") + '">[' + timestamp + '] ' + msg + '</div>';
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function setStatus(msg) { document.getElementById("statusBar").innerHTML = msg; }
+        function setProgress(percent) {
+            document.getElementById("progressFill").style.width = percent + "%";
+            document.getElementById("progressText").innerHTML = percent + "%";
+        }
+        
+        function setStep(stepNum, status) {
+            var prefix = installMode === "new" ? "stepN" : "stepU";
+            var el = document.getElementById(prefix + stepNum);
+            if (el) el.className = "step " + status;
+        }
+
+        function runAdbCommand(args) {
+            try {
+                var tempFile = scriptDir + "\\adb_output.tmp";
+                var fullCmd = 'cmd /c ""' + adbPath + '" ' + args + ' > "' + tempFile + '" 2>&1"';
+                shell.Run(fullCmd, 0, true);
+                
+                var output = "";
+                if (fso.FileExists(tempFile)) {
+                    var file = fso.OpenTextFile(tempFile, 1);
+                    if (!file.AtEndOfStream) {
+                        output = file.ReadAll();
+                    }
+                    file.Close();
+                    try { fso.DeleteFile(tempFile); } catch(e) {}
+                }
+                return output.trim();
+            } catch(e) {
+                return "ERROR: " + e.message;
+            }
+        }
+
+        function sleep(ms) {
+            var start = new Date().getTime();
+            while (new Date().getTime() < start + ms);
+        }
+
+        function reconnectAdb() {
+            logMessage("[CẢNH BÁO] Mất kết nối ADB, đang kết nối lại...", "warn");
+            runAdbCommand("connect " + deviceIP + ":5555");
+            sleep(2000);
+        }
+
+        function checkConnection(output) {
+            return output.indexOf("no devices") < 0 && output.indexOf("error") < 0;
+        }
+
+        function selectMode(mode) {
+            installMode = mode;
+            
+            // Hide download actions
+            document.getElementById("downloadActions").className = "download-actions hide";
+            
+            document.getElementById("modeNew").className = "mode-btn" + (mode === "new" ? " selected" : "");
+            document.getElementById("modeUpdate").className = "mode-btn" + (mode === "update" ? " selected" : "");
+            
+            // Show/hide instructions based on mode
+            if (mode === "new") {
+                document.getElementById("instructNew").style.display = "block";
+                document.getElementById("instructUpdate").style.display = "none";
+                document.getElementById("stepsNew").style.display = "flex";
+                document.getElementById("stepsUpdate").style.display = "none";
+                document.getElementById("ipAddress").value = "192.168.43.1";
+                document.getElementById("installBtn").innerHTML = "BẮT ĐẦU CÀI ĐẶT MỚI";
+            } else {
+                document.getElementById("instructNew").style.display = "none";
+                document.getElementById("instructUpdate").style.display = "block";
+                document.getElementById("stepsNew").style.display = "none";
+                document.getElementById("stepsUpdate").style.display = "flex";
+                document.getElementById("ipAddress").value = "";
+                document.getElementById("installBtn").innerHTML = "BẮT ĐẦU CẬP NHẬT";
+            }
+            
+            // Show IP input and install button
+            document.getElementById("ipGroup").style.display = "flex";
+            document.getElementById("installBtn").style.display = "block";
+            
+            // Scroll to instructions
+            setTimeout(function() {
+                var instruction = mode === "new" ? document.getElementById("instructNew") : document.getElementById("instructUpdate");
+                instruction.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+        }
+
+        function testConnection() {
+            var ip = document.getElementById("ipAddress").value;
+            if (!ip) {
+                alert("Vui lòng nhập địa chỉ IP!");
+                return;
+            }
+            deviceIP = ip;
+            logMessage("Đang kiểm tra kết nối đến " + ip + "...", "info");
+            setStatus("Đang kiểm tra kết nối...");
+            
+            runAdbCommand("disconnect");
+            sleep(500);
+            
+            shell.Run('cmd /c taskkill /f /t /im adb.exe', 0, true);
+            sleep(500);
+            runAdbCommand("devices");
+            sleep(500);
+            
+            var result = runAdbCommand("connect " + ip + ":5555");
+            logMessage(result, result.indexOf("connected") >= 0 ? "success" : "error");
+            
+            var devices = runAdbCommand("devices");
+            if (devices.indexOf(ip) >= 0 && devices.indexOf("device") >= 0) {
+                setStatus("[OK] Kết nối thành công! Sẵn sàng cài đặt.");
+                logMessage("[OK] Kết nối ADB thành công!", "success");
+            } else {
+                setStatus("[LỖI] Không thể kết nối. Kiểm tra lại IP hoặc WiFi.");
+                logMessage("[LỖI] Kết nối thất bại!", "error");
+            }
+        }
+
+        function restorePackages() {
+            logMessage("Đang khôi phục trạng thái cũ của loa...", "warn");
+            var packages = [
+                "com.phicomm.speaker.player",
+                "com.phicomm.speaker.device",
+                "com.phicomm.speaker.airskill",
+                "com.phicomm.speaker.exceptionreporter",
+                "com.phicomm.speaker.ijetty",
+                "com.phicomm.speaker.netctl",
+                "com.phicomm.speaker.otaservice",
+                "com.phicomm.speaker.systemtool",
+                "com.phicomm.speaker.productiontest",
+                "com.phicomm.speaker.bugreport"
+            ];
+            for (var i = 0; i < packages.length; i++) {
+                runAdbCommand("shell /system/bin/pm unhide " + packages[i]);
+            }
+            logMessage("[OK] Đã khôi phục trạng thái cũ.", "success");
+        }
+
+        function startInstall() {
+            if (isInstalling) return;
+            if (!installMode) {
+                alert("Vui lòng chọn chế độ: Cài đặt mới hoặc Cập nhật!");
+                return;
+            }
+            
+            deviceIP = document.getElementById("ipAddress").value;
+            if (!deviceIP) {
+                alert("Vui lòng nhập địa chỉ IP!");
+                return;
+            }
+            
+            isInstalling = true;
+            var installBtn = document.getElementById("installBtn");
+            
+            installBtn.disabled = true;
+            installBtn.innerHTML = "ĐANG CÀI ĐẶT...";
+            installBtn.style.background = "#45475a";
+            
+            document.getElementById("logBox").innerHTML = "";
+            
+            var totalSteps = installMode === "new" ? 6 : 5;
+            for (var s = 1; s <= totalSteps; s++) setStep(s, "");
+            
+            var MAX_INSTALL_RETRY = 8;
+            
+            try {
+                var currentStep = 1;
+                var result;
+                
+                // Step 1: Connect
+                setStep(currentStep, "active");
+                setProgress(5);
+                setStatus("Bước " + currentStep + ": Đang kết nối thiết bị...");
+                
+                logMessage("Đang dọn dẹp kết nối cũ...", "info");
+                
+                // Kill all ADB processes thoroughly
+                runAdbCommand("kill-server");
+                sleep(500);
+                shell.Run('cmd /c taskkill /f /t /im adb.exe', 0, true);
+                sleep(1000);
+                
+                // Start fresh ADB server
+                logMessage("Đang khởi động ADB server mới...", "info");
+                runAdbCommand("start-server");
+                sleep(1000);
+                
+                // Retry connection multiple times
+                var connectRetry = 0;
+                var connectSuccess = false;
+                var MAX_CONNECT_RETRY = 5;
+                
+                while (connectRetry < MAX_CONNECT_RETRY && !connectSuccess) {
+                    connectRetry++;
+                    logMessage("Đang kết nối đến " + deviceIP + ":5555... (lần " + connectRetry + "/" + MAX_CONNECT_RETRY + ")", "info");
+                    
+                    result = runAdbCommand("connect " + deviceIP + ":5555");
+                    logMessage(result, "info");
+                    
+                    sleep(1500);
+                    
+                    var devices = runAdbCommand("devices");
+                    if (devices.indexOf(deviceIP) >= 0 && devices.indexOf("device") >= 0) {
+                        connectSuccess = true;
+                        break;
+                    }
+                    
+                    if (connectRetry < MAX_CONNECT_RETRY) {
+                        logMessage("[CẢNH BÁO] Kết nối thất bại, thử lại...", "warn");
+                        sleep(1000);
+                    }
+                }
+                
+                if (!connectSuccess) {
+                    throw new Error("Không thể kết nối sau " + MAX_CONNECT_RETRY + " lần thử! Kiểm tra IP hoặc WiFi.");
+                }
+                
+                setStep(currentStep, "done");
+                logMessage("[OK] Kết nối thành công!", "success");
+                setProgress(10);
+                currentStep++;
+                
+                // Step 2: Hide old packages (NEW INSTALL ONLY)
+                if (installMode === "new") {
+                    setStep(currentStep, "active");
+                    setStatus("Bước " + currentStep + ": Đang tắt ứng dụng cũ...");
+                    
+                    var packages = [
+                        "com.phicomm.speaker.player",
+                        "com.phicomm.speaker.airskill",
+                        "com.phicomm.speaker.exceptionreporter",
+                        "com.phicomm.speaker.ijetty",
+                        "com.phicomm.speaker.netctl",
+                        "com.phicomm.speaker.systemtool",
+                        "com.phicomm.speaker.device",
+                        "com.phicomm.speaker.productiontest",
+                        "com.phicomm.speaker.bugreport"
+                    ];
+                    
+                    for (var i = 0; i < packages.length; i++) {
+                        logMessage("Tắt " + packages[i].split(".").pop() + "...", "info");
+                        var hideResult = runAdbCommand("shell /system/bin/pm hide " + packages[i]);
+                        if (!checkConnection(hideResult)) {
+                            reconnectAdb();
+                            i--;
+                            continue;
+                        }
+                        setProgress(10 + Math.floor((i / packages.length) * 15));
+                        sleep(100);
+                    }
+                    
+                    setStep(currentStep, "done");
+                    logMessage("[OK] Đã tắt các ứng dụng cũ!", "success");
+                    setProgress(25);
+                    currentStep++;
+                }
+                
+                // Step: Push APK
+                setStep(currentStep, "active");
+                setStatus("Bước " + currentStep + ": Đang sao chép APK...");
+                
+                logMessage("Đang sao chép APK lên thiết bị...", "info");
+                result = runAdbCommand('push "' + apkPath + '" /data/local/tmp/app-voicebot.apk');
+                
+                if (!checkConnection(result)) {
+                    reconnectAdb();
+                    result = runAdbCommand('push "' + apkPath + '" /data/local/tmp/app-voicebot.apk');
+                }
+                
+                logMessage(result, "info");
+                setStep(currentStep, "done");
+                logMessage("[OK] Sao chép APK thành công!", "success");
+                setProgress(installMode === "new" ? 40 : 30);
+                currentStep++;
+                
+                // Step 3: Install APK
+                setStep(currentStep, "active");
+                setStatus("Bước " + currentStep + ": Đang cài đặt VoiceBot...");
+                
+                var installRetry = 0;
+                var installSuccess = false;
+                
+                while (installRetry < MAX_INSTALL_RETRY && !installSuccess) {
+                    installRetry++;
+                    logMessage("Đang cài đặt... (lần " + installRetry + "/" + MAX_INSTALL_RETRY + ")", "info");
+                    
+                    result = runAdbCommand("shell /system/bin/pm install -r /data/local/tmp/app-voicebot.apk");
+                    
+                    if (!checkConnection(result)) {
+                        reconnectAdb();
+                        installRetry = 0;
+                        continue;
+                    }
+                    
+                    if (result.indexOf("Success") >= 0) {
+                        installSuccess = true;
+                        break;
+                    }
+                    
+                    if (result.indexOf("INSTALL_FAILED_DEXOPT") >= 0) {
+                        logMessage("[CẢNH BÁO] INSTALL_FAILED_DEXOPT - Thử lại sau 1 giây...", "warn");
+                        sleep(1000);
+                        continue;
+                    }
+                    
+                    if (result.indexOf("INSTALL_FAILED_UPDATE_INCOMPATIBLE") >= 0) {
+                        logMessage("[CẢNH BÁO] Phát hiện phiên bản cũ không tương thích!", "warn");
+                        logMessage("Đang gỡ cài đặt phiên bản cũ...", "info");
+                        runAdbCommand("shell /system/bin/pm uninstall info.dourok.voicebot");
+                        logMessage("[OK] Đã gỡ cài đặt phiên bản cũ.", "success");
+                        sleep(1000);
+                        installRetry = 0;
+                        continue;
+                    }
+                    
+                    logMessage(result, "error");
+                    sleep(1000);
+                }
+                
+                if (!installSuccess) {
+                    logMessage("[LỖI] Cài đặt thất bại sau " + MAX_INSTALL_RETRY + " lần thử!", "error");
+                    if (installMode === "new") restorePackages();
+                    throw new Error("Cài đặt APK thất bại!");
+                }
+                
+                setStep(currentStep, "done");
+                logMessage("[OK] Cài đặt VoiceBot thành công!", "success");
+                setProgress(installMode === "new" ? 70 : 60);
+                currentStep++;
+                
+                // Step 4: Grant permissions
+                setStep(currentStep, "active");
+                setStatus("Bước " + currentStep + ": Đang cấp quyền...");
+                
+                var permissions = [
+                    "android.permission.RECORD_AUDIO",
+                    "android.permission.INTERNET",
+                    "android.permission.ACCESS_NETWORK_STATE",
+                    "android.permission.ACCESS_WIFI_STATE",
+                    "android.permission.CHANGE_WIFI_STATE",
+                    "android.permission.BLUETOOTH",
+                    "android.permission.BLUETOOTH_ADMIN",
+                    "android.permission.WRITE_EXTERNAL_STORAGE",
+                    "android.permission.READ_EXTERNAL_STORAGE"
+                ];
+                
+                logMessage("Đang cấp quyền cho ứng dụng...", "info");
+                for (var j = 0; j < permissions.length; j++) {
+                    runAdbCommand("shell pm grant info.dourok.voicebot " + permissions[j]);
+                    setProgress((installMode === "new" ? 70 : 60) + Math.floor((j / permissions.length) * 15));
+                }
+                
+                setStep(currentStep, "done");
+                logMessage("[OK] Đã cấp quyền thành công!", "success");
+                setProgress(installMode === "new" ? 85 : 80);
+                currentStep++;
+                
+                // Step 5: Start app
+                setStep(currentStep, "active");
+                setStatus("Bước " + currentStep + ": Đang khởi động ứng dụng...");
+                
+                logMessage("Đang khởi động VoiceBot...", "info");
+                runAdbCommand("shell am start -n info.dourok.voicebot/.java.activities.MainActivity");
+                sleep(1000);
+                
+                logMessage("Đang dọn dẹp file tạm...", "info");
+                runAdbCommand("shell rm /data/local/tmp/app-voicebot.apk");
+                
+                setStep(currentStep, "done");
+                setProgress(100);
+                
+                logMessage("", "info");
+                logMessage("=========================================", "success");
+                logMessage("[OK] CÀI ĐẶT THÀNH CÔNG!", "success");
+                logMessage("=========================================", "success");
+                
+                setStatus("[OK] CÀI ĐẶT HOÀN TẤT!");
+                
+                if (installMode === "new") {
+                    alert("CÀI ĐẶT THÀNH CÔNG!\n\n" +
+                          "Bước tiếp theo:\n" +
+                          "1. RÚT ĐIỆN của loa\n" +
+                          "2. Chờ 10-15 giây\n" +
+                          "3. CẮM LẠI ĐIỆN cho loa\n" +
+                          "4. Đợi loa khởi động (khoảng 30 giây)\n" +
+                          "5. GIỮ NÚT đến khi nghe 'Vào chế độ cài đặt WiFi'\n" +
+                          "6. Kết nối máy tính vào WiFi: Phicomm_R1\n" +
+                          "7. Mở trình duyệt: http://192.168.43.1:8080\n" +
+                          "8. Chọn WiFi nhà bạn và nhập mật khẩu\n\n" +
+                          "Sau khi kết nối WiFi, loa sẽ đọc địa chỉ IP.");
+                } else {
+                    alert("CẬP NHẬT THÀNH CÔNG!\n\n" +
+                          "Loa đã được cập nhật phiên bản " + localVersion + ".\n" +
+                          "VoiceBot đã tự động khởi động.\n\n" +
+                          "Bạn có thể sử dụng ngay!");
+                }
+                
+            } catch(e) {
+                logMessage("[LỖI] " + e.message, "error");
+                setStatus("[LỖI] " + e.message);
+                
+                var totalSteps2 = installMode === "new" ? 6 : 5;
+                for (var k = 1; k <= totalSteps2; k++) {
+                    var prefix2 = installMode === "new" ? "stepN" : "stepU";
+                    var stepEl = document.getElementById(prefix2 + k);
+                    if (stepEl && stepEl.className.indexOf("active") >= 0) {
+                        setStep(k, "error");
+                        break;
+                    }
+                }
+                
+                alert("CÀI ĐẶT THẤT BẠI!\n\n" + e.message + "\n\nVui lòng kiểm tra kết nối và thử lại.");
+            }
+            
+            isInstalling = false;
+            installBtn.disabled = false;
+            installBtn.innerHTML = installMode === "new" ? "BẮT ĐẦU CÀI ĐẶT MỚI" : "BẮT ĐẦU CẬP NHẬT";
+            installBtn.style.background = "#a6e3a1";
+        }
+
+        window.onload = init;
+        window.resizeTo(880, 1100);
+    </script>
+</body>
+</html>
